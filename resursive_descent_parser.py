@@ -1,3 +1,7 @@
+"""
+Basic recursive descent parser for * and + arithmetical operations
+"""
+
 from typing import List, Optional
 
 example = [
@@ -11,7 +15,17 @@ example = [
     ["8*(7+4)+2", [['8', '*', ['7', '+', '4']], '+', '2']]
 ]
 
-'''
+"""
+Grammar rules:
+E = E + T
+E = T
+T = T * F
+T = F
+F = ( E )
+F = n
+
+
+After getting rid of left recursion:
 exp = mul | sum | n
 mul = n * exp
 sum = n + exp
@@ -25,16 +39,7 @@ sum1 = + n sum1
 sum1 = #
 
 
-
-Math:
-E = E + T
-E = T
-T = T * F
-T = F
-F = ( E )
-F = n
-
-
+Reverse Polish notation for rules
 E = T E1
 E1 = + T E1
 E1 = #
@@ -45,9 +50,7 @@ T1 = #
 
 F = ( E )
 F = n
-
-
-''' 
+"""
 
 
 def parse(expr: str) -> List:
@@ -70,12 +73,14 @@ F = n
 
 
 def E(tokens):
+    """E = T E1"""
     _T = T(tokens)
     _E1 = E1(tokens)
     return [_T, _E1]
 
 
 def E1(tokens):
+    """E1 = + T E1 | #"""
     if len(tokens) == 0:
         return None
     if tokens[0] == '+':
@@ -92,12 +97,17 @@ def E1(tokens):
 
 
 def T(tokens):
+    """T = F T1"""
     _F = F(tokens)
     _T1 = T1(tokens)
     return [_F, _T1]
 
 
 def T1(tokens):
+    """
+    T1 = * F T1
+    T1 = #
+    """
     if len(tokens) == 0:
         return None
     if tokens[0] == '*':
@@ -114,6 +124,10 @@ def T1(tokens):
 
 
 def F(tokens):
+    """
+    F = ( E )
+    F = n
+    """
     if len(tokens) == 0:
         return None
     first_symbol: str = tokens[0]
@@ -130,63 +144,52 @@ def F(tokens):
     return None
 
 
-# def parse_expression(tokens: List) -> Optional[List]:
-#     '''exp = mul | sum | n'''
-#     if tree := parse_mul(tokens=tokens):
-#         return tree
-#     if tree := parse_sum(tokens=tokens):
-#         return tree
-#     if (result := tokens[0]).isdigit():
-#         return result
-#     return None
-#
-#
-# def parse_mul(tokens: List) -> Optional[List]:
-#     if len(tokens) < 3:
-#         return None
-#     a: str = tokens[0]
-#     b: str = tokens[1]
-#     if a.isdigit() and b == '*':
-#         return [a, b, parse_expression(tokens[2:])]
-#     return None
-#
-#
-# def parse_sum(tokens: List) -> Optional[List]:
-#     # sum = n + exp
-#     if len(tokens) < 3:
-#         return None
-#     a: str = tokens[0]
-#     b: str = tokens[1]
-#     if a.isdigit() and b == '+':
-#         #       n  +  exp
-#         return [a, b, parse_expression(tokens[2:])]
-#     return None
-#
-
-#
-#
-# def recursion_pyramid(depth, index=0, indent=''):
-#     if index == depth:
-#         return
-#     print(indent + f'( {index}')
-#     recursion_pyramid(depth, index+1, indent+'  ')
-#     print(indent + f') {index}')
+def parse_expression(tokens: List) -> Optional[List]:
+    """exp = mul | sum | n"""
+    if tree := parse_mul(tokens=tokens):
+        return tree
+    if tree := parse_sum(tokens=tokens):
+        return tree
+    if (result := tokens[0]).isdigit():
+        return result
+    return None
 
 
-def ClearNone(ast: List) -> List:
+def parse_mul(tokens: List) -> Optional[List]:
+    if len(tokens) < 3:
+        return None
+    a: str = tokens[0]
+    b: str = tokens[1]
+    if a.isdigit() and b == '*':
+        return [a, b, parse_expression(tokens[2:])]
+    return None
+
+
+def parse_sum(tokens: List) -> Optional[List]:
+    # sum = n + exp
+    if len(tokens) < 3:
+        return None
+    a: str = tokens[0]
+    b: str = tokens[1]
+    if a.isdigit() and b == '+':
+        #       n  +  exp
+        return [a, b, parse_expression(tokens[2:])]
+    return None
+
+
+def clear_none(ast: List) -> List:
     if isinstance(ast, list):
         if None in ast:
             ast.remove(None)
         for i in range(len(ast)):
-            ast[i] = ClearNone(ast[i])
+            ast[i] = clear_none(ast[i])
     return ast
 
 
 def app():
-    # recursion_pyramid(5)
     for i in example:
         sample = i[0]
-        res = ClearNone(parse(sample))
+        res = clear_none(parse(sample))
         valid_result = i[1]
         print(f'Sample: {sample}\n'
               f'Valid:  {valid_result}\n'
