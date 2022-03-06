@@ -9,6 +9,6 @@ I really hated it at first but then fell in love with this course!
 I discovered many useful aspects 
 and patterns which helped me to understand and therefor use Python better.
 
-In this repo I saved some tasks we were given during the course and important theoretical points. I hope that you will find it useful.
+In this repo I saved some tasks we were given during the course and accumulated important theoretical points, links to videos and resources that helped me. I hope that you will find it useful.
 
 **✨ Enjoy ✨**
